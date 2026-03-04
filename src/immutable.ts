@@ -36,13 +36,17 @@ export async function syncWalletAssets(walletAddress: string): Promise<boolean> 
         let cursor = "";
         let hasMore = true;
 
-        // Fetch paginated assets (might take a few requests depending on wallet size)
+        // Fetch paginated assets
         while (hasMore) {
-            const response = await client.listNFTsByAccountAddress({
+            const params: any = {
                 accountAddress: walletAddress,
-                chainName: "imtbl-zkevm-mainnet",
-                pageCursor: cursor
-            });
+                chainName: "imtbl-zkevm-mainnet"
+            };
+            if (cursor) {
+                params.pageCursor = cursor;
+            }
+
+            const response = await client.listNFTsByAccountAddress(params);
 
             if (response.result && response.result.length > 0) {
                 allAssets.push(...response.result);
@@ -100,16 +104,44 @@ export async function syncWalletAssets(walletAddress: string): Promise<boolean> 
     }
 }
 
-export function getCardDetails(cardId: string): CardDetails | null {
-    if (!fs.existsSync(DECK_FILE_PATH)) {
-        return null; // Deck has not been synced yet
+export function getCardDetails(cardName: string): CardDetails | null {
+    // 1. Chercher d'abord dans my_deck.json (Blockchain)
+    if (fs.existsSync(DECK_FILE_PATH)) {
+        try {
+            const rawData = fs.readFileSync(DECK_FILE_PATH, 'utf-8');
+            const deckMap = JSON.parse(rawData);
+
+            // Recherche par nom en ignorant la casse
+            const foundCard = Object.values(deckMap).find((c: any) =>
+                c.name && c.name.toLowerCase() === cardName.toLowerCase()
+            );
+
+            if (foundCard) {
+                return foundCard as CardDetails;
+            }
+        } catch (e) {
+            console.error("Error reading deck file:", e);
+        }
     }
-    try {
-        const rawData = fs.readFileSync(DECK_FILE_PATH, 'utf-8');
-        const deckMap = JSON.parse(rawData);
-        return deckMap[cardId] || null;
-    } catch (e) {
-        console.error("Error reading deck file:", e);
-        return null;
+
+    // 2. Si non trouvé ou my_deck.json n'existe pas, Fallback sur le starter_set.json
+    const starterSetPath = path.join(__dirname, '..', 'starter_set.json');
+    if (fs.existsSync(starterSetPath)) {
+        try {
+            const starterData = fs.readFileSync(starterSetPath, 'utf-8');
+            const starterMap = JSON.parse(starterData);
+
+            // Recherche directe dans les clés (qui sont les noms)
+            const starterKeys = Object.keys(starterMap);
+            const matchingKey = starterKeys.find(k => k.toLowerCase() === cardName.toLowerCase());
+
+            if (matchingKey) {
+                return starterMap[matchingKey] as CardDetails;
+            }
+        } catch (e) {
+            console.error("Error reading starter_set.json:", e);
+        }
     }
+
+    return null;
 }

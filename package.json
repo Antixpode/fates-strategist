@@ -9,7 +9,8 @@
     "dev": "node node_modules/npm-run-all/bin/npm-run-all/index.js --parallel watch:ts watch:electron",
     "watch:ts": "node node_modules/typescript/bin/tsc -w",
     "watch:electron": "node node_modules/nodemon/bin/nodemon.js --watch dist --exec \"node node_modules/electron/cli.js .\"",
-    "package": "node node_modules/electron-builder/cli.js --win portable"
+    "package": "node node_modules/electron-builder/cli.js --win portable",
+    "simulate": "node simulate_game.js"
   },
   "keywords": [],
   "author": "Fates Strategist",
@@ -28,6 +29,7 @@
     }
   },
   "devDependencies": {
+    "@types/mathjs": "^9.4.1",
     "@types/tail": "^2.2.3",
     "copyfiles": "^2.4.1",
     "electron": "^40.6.1",
@@ -41,6 +43,7 @@
     "@google/genai": "^1.43.0",
     "@imtbl/sdk": "^2.12.7",
     "dotenv": "^17.3.1",
+    "mathjs": "^15.1.1",
     "tail": "^2.2.6"
   }
 }

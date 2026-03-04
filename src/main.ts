@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { startWatching, stopWatching, logEmitter } from './watcher';
-import { initializeAI, analyzeEvent } from './analyzer';
+import { initializeAI, analyzeEvent, setLanguage } from './analyzer';
 import { syncWalletAssets } from './immutable';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
@@ -10,20 +10,16 @@ dotenv.config();
 
 let mainWindow: BrowserWindow | null = null;
 
-// Use userData path for persistent storage instead of __dirname which is read-only in packaged app
 const userDataPath = app.getPath('userData');
 const envPath = path.join(userDataPath, '.env');
 
-// Ensure parent directory exists for any data files
 if (!fs.existsSync(userDataPath)) {
     fs.mkdirSync(userDataPath, { recursive: true });
 }
 
-// Load env explicitly from user data path if it exists
 if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
 } else {
-    // Write an empty .env file to avoid ENOENT on first read
     fs.writeFileSync(envPath, "");
 }
 
@@ -42,27 +38,40 @@ function createWindow() {
         }
     });
 
-    // Force window on top for Windows/fullscreen games
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
     const rendererPath = path.join(__dirname, 'Renderer', 'index.html');
     mainWindow.loadFile(rendererPath);
 
-    const apiKey = process.env.GEMINI_API_KEY || '';
-    if (apiKey) initializeAI(apiKey);
+    // Initialisation avec la clé Groq (et la langue si configurée)
+    const groqKey = process.env.GROQ_API_KEY || '';
+    const lang = (process.env.AI_LANG || 'fr') as 'fr' | 'en';
+    if (groqKey) initializeAI(groqKey, lang);
 
     const logPath = process.env.LOG_FILE_PATH || 'C:\\Users\\mrrol\\AppData\\LocalLow\\Ubisoft\\Might and Magic Fates\\Player.log';
     startWatching(logPath);
 
+    let lastThreatState: any = null;
+
     const handleEvent = async (type: string, data: string) => {
-        mainWindow?.webContents.send('log-event', { type, data });
-        const analysis = await analyzeEvent(type, data);
-        mainWindow?.webContents.send('ai-analysis', { type, analysis });
+        // Calculer le ThreatState d'abord pour avoir le simplifiedMessage
+        const threatState = lastThreatState;
+        const simplified = threatState?.simplifiedMessage || data;
+        mainWindow?.webContents.send('log-event', { type, data, simplified });
+        const analysis = await analyzeEvent(type, data, lastThreatState);
+        if (analysis) {
+            mainWindow?.webContents.send('ai-analysis', { type, analysis });
+        }
     };
 
     logEmitter.on('cardPlayed', (data) => handleEvent('Card Played', data));
     logEmitter.on('turnStart', (data) => handleEvent('Turn Start', data));
     logEmitter.on('healthChange', (data) => handleEvent('Health Change', data));
+
+    logEmitter.on('threatUpdate', (threatState) => {
+        lastThreatState = threatState;
+        mainWindow?.webContents.send('threat-update', threatState);
+    });
 }
 
 app.whenReady().then(createWindow);
@@ -80,33 +89,42 @@ app.on('activate', () => {
     }
 });
 
-ipcMain.on('save-env-config', (event, { apiKey, walletAddress }) => {
-    const envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
-    let newContent = envContent;
+// Sauvegarde des paramètres : Groq key + wallet + langue
+ipcMain.on('save-env-config', (event, { groqKey, walletAddress, lang }) => {
+    let newContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
 
-    if (newContent.includes('GEMINI_API_KEY=')) {
-        newContent = newContent.replace(/GEMINI_API_KEY=.*/g, `GEMINI_API_KEY=${apiKey}`);
-    } else {
-        newContent += `\nGEMINI_API_KEY=${apiKey}`;
-    }
+    const setOrAdd = (content: string, key: string, value: string) => {
+        if (content.includes(`${key}=`)) {
+            return content.replace(new RegExp(`${key}=.*`), `${key}=${value}`);
+        }
+        return content + `\n${key}=${value}`;
+    };
 
-    if (newContent.includes('WALLET_ADDRESS=')) {
-        newContent = newContent.replace(/WALLET_ADDRESS=.*/g, `WALLET_ADDRESS=${walletAddress}`);
-    } else {
-        newContent += `\nWALLET_ADDRESS=${walletAddress}`;
-    }
+    newContent = setOrAdd(newContent, 'GROQ_API_KEY', groqKey || '');
+    newContent = setOrAdd(newContent, 'WALLET_ADDRESS', walletAddress || '');
+    newContent = setOrAdd(newContent, 'AI_LANG', lang || 'fr');
 
     fs.writeFileSync(envPath, newContent.trim());
-    process.env.GEMINI_API_KEY = apiKey;
+    process.env.GROQ_API_KEY = groqKey;
     process.env.WALLET_ADDRESS = walletAddress;
-    initializeAI(apiKey);
+    process.env.AI_LANG = lang;
+
+    initializeAI(groqKey, lang);
 });
 
+// Réponse get-env-config : retourne groqKey, wallet, et langue
 ipcMain.handle('get-env-config', () => {
     return {
-        apiKey: process.env.GEMINI_API_KEY || '',
-        walletAddress: process.env.WALLET_ADDRESS || ''
+        groqKey: process.env.GROQ_API_KEY || '',
+        walletAddress: process.env.WALLET_ADDRESS || '',
+        lang: process.env.AI_LANG || 'fr'
     };
+});
+
+// IPC pour changer la langue à chaud sans sauvegarder
+ipcMain.on('set-ai-lang', (event, lang: 'fr' | 'en') => {
+    setLanguage(lang);
+    process.env.AI_LANG = lang;
 });
 
 ipcMain.handle('sync-deck', async (event, walletAddress) => {

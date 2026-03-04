@@ -1,0 +1,92 @@
+{
+    "Fantassin du Havre": {
+        "id": "starter_haven_1",
+        "name": "Fantassin du Havre",
+        "attack": 2,
+        "health": 3,
+        "cost": 2,
+        "keywords": [
+            "Provocation",
+            "Havre"
+        ]
+    },
+    "Arbalétrier": {
+        "id": "starter_haven_2",
+        "name": "Arbalétrier",
+        "attack": 3,
+        "health": 1,
+        "cost": 2,
+        "keywords": [
+            "Distance",
+            "Havre"
+        ]
+    },
+    "Squelette": {
+        "id": "starter_necro_1",
+        "name": "Squelette",
+        "attack": 1,
+        "health": 1,
+        "cost": 1,
+        "keywords": [
+            "Mort-vivant",
+            "Nécropole"
+        ]
+    },
+    "Vampire": {
+        "id": "starter_necro_2",
+        "name": "Vampire",
+        "attack": 3,
+        "health": 3,
+        "cost": 4,
+        "keywords": [
+            "Vol de vie",
+            "Mort-vivant",
+            "Nécropole"
+        ]
+    },
+    "Diablotin": {
+        "id": "starter_inferno_1",
+        "name": "Diablotin",
+        "attack": 2,
+        "health": 1,
+        "cost": 1,
+        "keywords": [
+            "Démon",
+            "Inferno"
+        ]
+    },
+    "Cerbère": {
+        "id": "starter_inferno_2",
+        "name": "Cerbère",
+        "attack": 4,
+        "health": 2,
+        "cost": 3,
+        "keywords": [
+            "Attaque multiple",
+            "Démon",
+            "Inferno"
+        ]
+    },
+    "Apprenti": {
+        "id": "starter_academy_1",
+        "name": "Apprenti",
+        "attack": 1,
+        "health": 2,
+        "cost": 1,
+        "keywords": [
+            "Magie",
+            "Académie"
+        ]
+    },
+    "Gargouille": {
+        "id": "starter_academy_2",
+        "name": "Gargouille",
+        "attack": 2,
+        "health": 3,
+        "cost": 2,
+        "keywords": [
+            "Vol",
+            "Académie"
+        ]
+    }
+}
