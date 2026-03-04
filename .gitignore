@@ -1,0 +1,6 @@
+node_modules/
+dist/
+release/
+.env
+my_deck.json
+Player.log

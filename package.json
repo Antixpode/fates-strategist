@@ -1,0 +1,46 @@
+{
+  "name": "fates-strategist",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "node node_modules/electron/cli.js .",
+    "build": "node node_modules/typescript/bin/tsc",
+    "postbuild": "node -e \"const fs=require('fs');fs.mkdirSync('dist/Renderer',{recursive:true});fs.cpSync('src/Renderer/index.html','dist/Renderer/index.html');fs.cpSync('src/Renderer/styles.css','dist/Renderer/styles.css')\"",
+    "dev": "node node_modules/npm-run-all/bin/npm-run-all/index.js --parallel watch:ts watch:electron",
+    "watch:ts": "node node_modules/typescript/bin/tsc -w",
+    "watch:electron": "node node_modules/nodemon/bin/nodemon.js --watch dist --exec \"node node_modules/electron/cli.js .\"",
+    "package": "node node_modules/electron-builder/cli.js --win portable"
+  },
+  "keywords": [],
+  "author": "Fates Strategist",
+  "license": "ISC",
+  "description": "Assistant for Might & Magic Fates",
+  "build": {
+    "appId": "com.fates.strategist",
+    "productName": "Fates-Strategist",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        "dir"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/tail": "^2.2.3",
+    "copyfiles": "^2.4.1",
+    "electron": "^40.6.1",
+    "electron-builder": "^26.8.1",
+    "nodemon": "^3.1.14",
+    "npm-run-all": "^4.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@google/genai": "^1.43.0",
+    "@imtbl/sdk": "^2.12.7",
+    "dotenv": "^17.3.1",
+    "tail": "^2.2.6"
+  }
+}
