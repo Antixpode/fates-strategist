@@ -11,7 +11,10 @@ export interface CardDetails {
     keywords: string[];
 }
 
-const DECK_FILE_PATH = path.join(__dirname, '..', 'my_deck.json');
+import { app } from 'electron';
+
+const userDataPath = app ? app.getPath('userData') : path.join(__dirname, '..');
+const DECK_FILE_PATH = path.join(userDataPath, 'my_deck.json');
 
 // Initialize the BlockchainData client for Mainnet
 const client = new blockchainData.BlockchainData({

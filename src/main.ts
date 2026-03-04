@@ -10,7 +10,22 @@ dotenv.config();
 
 let mainWindow: BrowserWindow | null = null;
 
-const envPath = path.join(__dirname, '..', '.env');
+// Use userData path for persistent storage instead of __dirname which is read-only in packaged app
+const userDataPath = app.getPath('userData');
+const envPath = path.join(userDataPath, '.env');
+
+// Ensure parent directory exists for any data files
+if (!fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath, { recursive: true });
+}
+
+// Load env explicitly from user data path if it exists
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+} else {
+    // Write an empty .env file to avoid ENOENT on first read
+    fs.writeFileSync(envPath, "");
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({
