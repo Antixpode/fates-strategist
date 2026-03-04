@@ -88,5 +88,531 @@
             "Vol",
             "Académie"
         ]
+    },
+    "Soldat": {
+        "id": "haven_3",
+        "name": "Soldat",
+        "faction": "Haven",
+        "attack": 2,
+        "health": 2,
+        "cost": 1,
+        "keywords": [
+            "Havre"
+        ]
+    },
+    "Mercenaire": {
+        "id": "haven_4",
+        "name": "Mercenaire",
+        "faction": "Haven",
+        "attack": 3,
+        "health": 2,
+        "cost": 2,
+        "keywords": [
+            "Havre"
+        ]
+    },
+    "Griffon Impérial": {
+        "id": "haven_5",
+        "name": "Griffon Impérial",
+        "faction": "Haven",
+        "attack": 3,
+        "health": 4,
+        "cost": 4,
+        "keywords": [
+            "Vol",
+            "Havre"
+        ]
+    },
+    "Forgeron Nain": {
+        "id": "haven_6",
+        "name": "Forgeron Nain",
+        "faction": "Haven",
+        "attack": 1,
+        "health": 3,
+        "cost": 2,
+        "keywords": [
+            "Soutien",
+            "Buff",
+            "Havre"
+        ]
+    },
+    "Imposition des mains": {
+        "id": "haven_spell_1",
+        "name": "Imposition des mains",
+        "faction": "Haven",
+        "attack": 0,
+        "health": 0,
+        "cost": 3,
+        "damage": 0,
+        "keywords": [
+            "Sort",
+            "Soin",
+            "Havre"
+        ]
+    },
+    "Bénédiction": {
+        "id": "haven_spell_2",
+        "name": "Bénédiction",
+        "faction": "Haven",
+        "attack": 0,
+        "health": 0,
+        "cost": 2,
+        "damage": 0,
+        "keywords": [
+            "Sort",
+            "Buff",
+            "Havre"
+        ]
+    },
+    "Bouclier Sacré": {
+        "id": "haven_spell_3",
+        "name": "Bouclier Sacré",
+        "faction": "Haven",
+        "attack": 0,
+        "health": 0,
+        "cost": 2,
+        "damage": 0,
+        "keywords": [
+            "Sort",
+            "Protection",
+            "Havre"
+        ]
+    },
+    "Armure Céleste": {
+        "id": "haven_artifact_1",
+        "name": "Armure Céleste",
+        "faction": "Haven",
+        "attack": 0,
+        "health": 0,
+        "cost": 3,
+        "keywords": [
+            "Artéfact",
+            "Protection",
+            "Havre"
+        ]
+    },
+    "Soldat Venimeux": {
+        "id": "necro_3",
+        "name": "Soldat Venimeux",
+        "faction": "Necropolis",
+        "attack": 2,
+        "health": 3,
+        "cost": 2,
+        "keywords": [
+            "Mort-vivant",
+            "Poison",
+            "Nécropole"
+        ]
+    },
+    "Vampire Assassin": {
+        "id": "necro_4",
+        "name": "Vampire Assassin",
+        "faction": "Necropolis",
+        "attack": 4,
+        "health": 3,
+        "cost": 5,
+        "keywords": [
+            "Vol de vie",
+            "Mort-vivant",
+            "Nécropole"
+        ]
+    },
+    "Apprenti Nécromancien": {
+        "id": "necro_5",
+        "name": "Apprenti Nécromancien",
+        "faction": "Necropolis",
+        "attack": 1,
+        "health": 2,
+        "cost": 2,
+        "keywords": [
+            "Invocateur",
+            "Mort-vivant",
+            "Nécropole"
+        ]
+    },
+    "Fantôme Errant": {
+        "id": "necro_6",
+        "name": "Fantôme Errant",
+        "faction": "Necropolis",
+        "attack": 2,
+        "health": 1,
+        "cost": 1,
+        "keywords": [
+            "Insaisissable",
+            "Mort-vivant",
+            "Nécropole"
+        ]
+    },
+    "Zombie Putride": {
+        "id": "necro_7",
+        "name": "Zombie Putride",
+        "faction": "Necropolis",
+        "attack": 1,
+        "health": 4,
+        "cost": 2,
+        "keywords": [
+            "Provocation",
+            "Mort-vivant",
+            "Nécropole"
+        ]
+    },
+    "Momie Putréfiée": {
+        "id": "necro_8",
+        "name": "Momie Putréfiée",
+        "faction": "Necropolis",
+        "attack": 2,
+        "health": 3,
+        "cost": 3,
+        "keywords": [
+            "Invocateur",
+            "Mort-vivant",
+            "Nécropole"
+        ]
+    },
+    "Relève des Morts": {
+        "id": "necro_spell_1",
+        "name": "Relève des Morts",
+        "faction": "Necropolis",
+        "attack": 0,
+        "health": 0,
+        "cost": 4,
+        "damage": 0,
+        "keywords": [
+            "Sort",
+            "Résurrection",
+            "Nécropole"
+        ]
+    },
+    "Drain d'Âme": {
+        "id": "necro_spell_2",
+        "name": "Drain d'Âme",
+        "faction": "Necropolis",
+        "attack": 0,
+        "health": 0,
+        "cost": 3,
+        "damage": 3,
+        "keywords": [
+            "Sort",
+            "Vol de vie",
+            "Nécropole"
+        ]
+    },
+    "Sceau du Destin": {
+        "id": "necro_spell_3",
+        "name": "Sceau du Destin",
+        "faction": "Necropolis",
+        "attack": 0,
+        "health": 0,
+        "cost": 2,
+        "damage": 2,
+        "keywords": [
+            "Sort",
+            "Contrôle",
+            "Nécropole"
+        ]
+    },
+    "Lutin Infernal": {
+        "id": "inferno_3",
+        "name": "Lutin Infernal",
+        "faction": "Inferno",
+        "attack": 2,
+        "health": 1,
+        "cost": 1,
+        "keywords": [
+            "Démon",
+            "Inferno"
+        ]
+    },
+    "Succube": {
+        "id": "inferno_4",
+        "name": "Succube",
+        "faction": "Inferno",
+        "attack": 2,
+        "health": 4,
+        "cost": 2,
+        "keywords": [
+            "Démon",
+            "Distance",
+            "Magie",
+            "Inferno"
+        ]
+    },
+    "Seigneur des Abîmes": {
+        "id": "inferno_5",
+        "name": "Seigneur des Abîmes",
+        "faction": "Inferno",
+        "attack": 5,
+        "health": 5,
+        "cost": 6,
+        "keywords": [
+            "Démon",
+            "Invocateur",
+            "Inferno"
+        ]
+    },
+    "Ravageur": {
+        "id": "inferno_6",
+        "name": "Ravageur",
+        "faction": "Inferno",
+        "attack": 4,
+        "health": 3,
+        "cost": 4,
+        "keywords": [
+            "Démon",
+            "Attaque multiple",
+            "Inferno"
+        ]
+    },
+    "Tourmenteur": {
+        "id": "inferno_7",
+        "name": "Tourmenteur",
+        "faction": "Inferno",
+        "attack": 3,
+        "health": 2,
+        "cost": 3,
+        "keywords": [
+            "Démon",
+            "Inferno"
+        ]
+    },
+    "Fanatique Flammesombre": {
+        "id": "inferno_8",
+        "name": "Fanatique Flammesombre",
+        "faction": "Inferno",
+        "attack": 3,
+        "health": 1,
+        "cost": 2,
+        "keywords": [
+            "Démon",
+            "Inferno"
+        ]
+    },
+    "Trait de Feu": {
+        "id": "inferno_spell_1",
+        "name": "Trait de Feu",
+        "faction": "Inferno",
+        "attack": 0,
+        "health": 0,
+        "cost": 1,
+        "damage": 2,
+        "keywords": [
+            "Sort",
+            "Feu",
+            "Inferno"
+        ]
+    },
+    "Vague de Chaleur": {
+        "id": "inferno_spell_2",
+        "name": "Vague de Chaleur",
+        "faction": "Inferno",
+        "attack": 0,
+        "health": 0,
+        "cost": 4,
+        "damage": 2,
+        "keywords": [
+            "Sort",
+            "AoE",
+            "Feu",
+            "Inferno"
+        ]
+    },
+    "Coulée de Lave": {
+        "id": "inferno_spell_3",
+        "name": "Coulée de Lave",
+        "faction": "Inferno",
+        "attack": 0,
+        "health": 0,
+        "cost": 5,
+        "damage": 3,
+        "keywords": [
+            "Sort",
+            "AoE",
+            "Feu",
+            "Inferno"
+        ]
+    },
+    "Rune de Flammes": {
+        "id": "inferno_spell_4",
+        "name": "Rune de Flammes",
+        "faction": "Inferno",
+        "attack": 0,
+        "health": 0,
+        "cost": 3,
+        "damage": 2,
+        "keywords": [
+            "Sort",
+            "Feu",
+            "Inferno"
+        ]
+    },
+    "Érudit": {
+        "id": "academy_3",
+        "name": "Érudit",
+        "faction": "Academy",
+        "attack": 1,
+        "health": 3,
+        "cost": 2,
+        "keywords": [
+            "Magie",
+            "Académie"
+        ]
+    },
+    "Gargouille d'Obsidienne": {
+        "id": "academy_4",
+        "name": "Gargouille d'Obsidienne",
+        "faction": "Academy",
+        "attack": 2,
+        "health": 4,
+        "cost": 3,
+        "keywords": [
+            "Provocation",
+            "Vol",
+            "Académie"
+        ]
+    },
+    "Archer Arcanique": {
+        "id": "academy_5",
+        "name": "Archer Arcanique",
+        "faction": "Academy",
+        "attack": 3,
+        "health": 2,
+        "cost": 3,
+        "keywords": [
+            "Distance",
+            "Magie",
+            "Académie"
+        ]
+    },
+    "Golem de Dragon": {
+        "id": "academy_6",
+        "name": "Golem de Dragon",
+        "faction": "Academy",
+        "attack": 4,
+        "health": 6,
+        "cost": 6,
+        "keywords": [
+            "Académie"
+        ]
+    },
+    "Tortue Géante": {
+        "id": "academy_7",
+        "name": "Tortue Géante",
+        "faction": "Academy",
+        "attack": 1,
+        "health": 6,
+        "cost": 4,
+        "keywords": [
+            "Provocation",
+            "Académie"
+        ]
+    },
+    "Djinn": {
+        "id": "academy_8",
+        "name": "Djinn",
+        "faction": "Academy",
+        "attack": 3,
+        "health": 3,
+        "cost": 4,
+        "keywords": [
+            "Magie",
+            "Vol",
+            "Académie"
+        ]
+    },
+    "Éclair en Chaîne": {
+        "id": "academy_spell_1",
+        "name": "Éclair en Chaîne",
+        "faction": "Academy",
+        "attack": 0,
+        "health": 0,
+        "cost": 5,
+        "damage": 2,
+        "keywords": [
+            "Sort",
+            "AoE",
+            "Air",
+            "Académie"
+        ]
+    },
+    "Rayon de Soleil": {
+        "id": "academy_spell_2",
+        "name": "Rayon de Soleil",
+        "faction": "Academy",
+        "attack": 0,
+        "health": 0,
+        "cost": 4,
+        "damage": 3,
+        "keywords": [
+            "Sort",
+            "AoE",
+            "Lumière",
+            "Académie"
+        ]
+    },
+    "Tir Tactique": {
+        "id": "academy_spell_3",
+        "name": "Tir Tactique",
+        "faction": "Academy",
+        "attack": 0,
+        "health": 0,
+        "cost": 2,
+        "damage": 2,
+        "keywords": [
+            "Sort",
+            "Académie"
+        ]
+    },
+    "Flèches de Vent": {
+        "id": "academy_spell_4",
+        "name": "Flèches de Vent",
+        "faction": "Academy",
+        "attack": 0,
+        "health": 0,
+        "cost": 2,
+        "damage": 0,
+        "keywords": [
+            "Sort",
+            "Buff",
+            "Distance",
+            "Académie"
+        ]
+    },
+    "Barde Errant": {
+        "id": "neutral_1",
+        "name": "Barde Errant",
+        "faction": "Neutre",
+        "attack": 1,
+        "health": 2,
+        "cost": 1,
+        "keywords": [
+            "Soutien",
+            "Neutre"
+        ]
+    },
+    "Drapeau de Ralliement": {
+        "id": "neutral_2",
+        "name": "Drapeau de Ralliement",
+        "faction": "Neutre",
+        "attack": 0,
+        "health": 0,
+        "cost": 2,
+        "keywords": [
+            "Artéfact",
+            "Initiative",
+            "Neutre"
+        ]
+    },
+    "Feu de Camp": {
+        "id": "neutral_3",
+        "name": "Feu de Camp",
+        "faction": "Neutre",
+        "attack": 0,
+        "health": 0,
+        "cost": 1,
+        "keywords": [
+            "Bâtiment",
+            "Soin",
+            "Neutre"
+        ]
     }
 }

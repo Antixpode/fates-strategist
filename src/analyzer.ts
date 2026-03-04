@@ -1,31 +1,32 @@
 import * as https from 'https';
-import * as dotenv from 'dotenv';
+import { setEngineLanguage } from './threatEngine';
 import { getCardDetails } from './immutable';
-dotenv.config();
 
 let groqApiKey: string = '';
-let adviceLang: 'fr' | 'en' = 'fr';
+let currentLang: 'fr' | 'en' = 'fr';
 let lastAnalysisTime = 0;
-const ANALYSIS_COOLDOWN = 8000; // 8s entre appels (Groq est généreuse en quota)
+const ANALYSIS_COOLDOWN = 8000;
 
-export function initializeAI(apiKey: string, lang?: string) {
+export function initializeAI(apiKey: string, lang: 'fr' | 'en' = 'fr') {
     if (!apiKey) {
         console.warn("No Groq API key provided. AI analysis will be disabled.");
         return;
     }
     groqApiKey = apiKey;
-    if (lang === 'en') adviceLang = 'en';
-    console.log(`Groq AI Initialized (llama3-70b-8192, lang: ${adviceLang}).`);
+    currentLang = lang;
+    setEngineLanguage(lang);
+    console.log(`Groq AI Initialized (llama-3.3-70b-versatile, lang: ${currentLang}).`);
 }
 
 export function setLanguage(lang: 'fr' | 'en') {
-    adviceLang = lang;
+    currentLang = lang;
+    setEngineLanguage(lang);
 }
 
 async function callGroqREST(prompt: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const body = JSON.stringify({
-            model: 'llama-3.3-70b-versatile', // remplaçant de llama3-70b-8192 (décommissionné)
+            model: 'llama-3.3-70b-versatile',
             messages: [{ role: 'user', content: prompt }],
             max_tokens: 60,
             temperature: 0.5
@@ -53,7 +54,7 @@ async function callGroqREST(prompt: string): Promise<string> {
                         return;
                     }
                     const text = json?.choices?.[0]?.message?.content;
-                    resolve(text ? text.trim() : (adviceLang === 'fr' ? 'Conseil indisponible.' : 'Advice unavailable.'));
+                    resolve(text ? text.trim() : (currentLang === 'fr' ? 'Conseil indisponible.' : 'Advice unavailable.'));
                 } catch (e) {
                     reject(new Error(`Parse error: ${data.substring(0, 100)}`));
                 }
@@ -91,7 +92,7 @@ export async function analyzeEvent(eventType: string, logLine: string, currentTh
         threatContext = ` AoE risk:${currentThreatState.aoeProbability}% Gold:${currentThreatState.opponentCurrentGold}.`;
     }
 
-    const langInstruction = adviceLang === 'fr'
+    const langInstruction = currentLang === 'fr'
         ? 'Réponds en français uniquement. Conseil tactique ultra-court (max 8 mots).'
         : 'Reply in English only. Ultra-short tactical advice (max 8 words).';
 
@@ -103,7 +104,7 @@ export async function analyzeEvent(eventType: string, logLine: string, currentTh
         console.error('Groq API Error:', error.message);
         if (error.message.includes('429')) {
             lastAnalysisTime = now + 30000;
-            return adviceLang === 'fr' ? '⏳ Limite IA atteinte.' : '⏳ AI rate limited.';
+            return currentLang === 'fr' ? '⏳ Limite IA atteinte.' : '⏳ AI rate limited.';
         }
         return '';
     }

@@ -1,80 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 
 <head>
     <meta charset="UTF-8">
-    <title>Fates-Strategist</title>
+    <title>Fates Strategist Overlay</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 
-<body>
-    <!-- Header / Drag region -->
-    <div class="drag-region">
-        <h2>Fates Strategist</h2>
-        <div class="header-buttons">
-            <button id="settings-toggle" class="icon-btn">⚙️</button>
-            <button id="close-app" class="icon-btn close-btn">❌</button>
-        </div>
-    </div>
+<body class="overlay-body">
 
-    <!-- Strategic Indicator bar (color dot + advice) -->
-    <div class="strategic-container">
-        <div id="strat-dot" class="strategic-dot dot-orange"></div>
-        <div id="strat-advice" class="strategic-advice">Analyse stratégique...</div>
-    </div>
-
-    <!-- HP Status bar -->
-    <div id="hp-status" class="hp-status hp-stable">
-        <span id="hp-icon">🟢</span>
-        <span id="hp-text">ÉTAT : STABLE</span>
-        <span id="hp-value" class="hp-value">❤️ 30 PV</span>
-    </div>
-
-    <!-- AoE Threat alert -->
-    <div id="threat-alert" class="hidden threat-alert">
-        <span>🔥 MENACE AOE: <span id="aoe-prob">0</span>%</span>
-        <span id="opp-stats" class="opp-stats-text">Main: 0 | Or: 0</span>
-    </div>
-
-    <!-- AoE Turn/Gold rule alert -->
-    <div id="aoe-risk-alert" class="hidden aoe-risk-alert">
-        ⚠️ RISQUE DE SORT DE ZONE : ÉLEVÉ
-    </div>
-
-    <!-- Priority Target badge -->
-    <div id="priority-badge" class="hidden priority-badge">
-        🎯 CIBLE PRIORITAIRE : <span id="priority-name">Vampire</span>
-    </div>
-
-    <!-- Settings panel -->
-    <div id="settings-panel" class="hidden">
-        <label for="groq-key">🤖 Groq API Key (gsk_...):</label>
-        <input type="password" id="groq-key" placeholder="gsk_xxxxxxxxxxxx">
-
-        <label for="wallet-address" style="margin-top: 5px;">💎 Wallet Address:</label>
-        <input type="text" id="wallet-address" placeholder="0x...">
-
-        <label style="margin-top: 5px;">🌐 Langue des conseils IA:</label>
-        <div class="lang-toggle">
-            <button id="lang-fr" class="lang-btn active-lang">🇫🇷 FR</button>
-            <button id="lang-en" class="lang-btn">🇬🇧 EN</button>
+    <div id="app-container">
+        <!-- TOP: Title & Controls -->
+        <div class="header-overlay">
+            <div class="title-section">
+                <h1>Fates Strategist</h1>
+                <div class="status-indicator">
+                    <span id="strat-dot" class="strategic-dot dot-grey"></span>
+                    <span id="strat-advice">En veille...</span>
+                </div>
+            </div>
+            <div class="controls">
+                <div id="sync-status" class="sync-indicator sync-syncing" title="Synchronisation...">🔄</div>
+                <div id="settings-toggle" class="icon-btn">⚙️</div>
+                <div id="close-app" class="icon-btn close-btn">✖</div>
+            </div>
         </div>
 
-        <button id="save-key">Sauvegarder</button>
-        <button id="sync-deck" style="background-color: #a855f7; margin-top: 5px;">Synchroniser mon Deck</button>
-        <span id="save-status"></span>
-    </div>
+        <!-- MAIN FEED -->
+        <div id="feed" class="log-feed">
+            <div class="message default-msg">En attente d'événements du jeu...</div>
+        </div>
 
-    <!-- Event feed (scrollable) -->
-    <div id="feed" class="content">
-        <div class="message default-msg">En attente d'événements du jeu...</div>
-    </div>
+        <!-- TARGETING ADVICE (Integrated into old layout) -->
+        <div id="targeting-advice-container" class="targeting-container hidden">
+            <div id="targeting-advice" class="targeting-action"></div>
+        </div>
 
-    <!-- Groq AI advice panel (bottom, always visible) -->
-    <div id="groq-advice-panel" class="groq-advice-panel">
-        <span class="groq-label">🤖 IA</span>
-        <span id="groq-advice-text" class="groq-advice-text">En attente d'analyse...</span>
+        <!-- OPPONENT LIVE ACTION -->
+        <div id="opponent-action" class="opponent-action-bar hidden">
+            <span id="opponent-action-text">...</span>
+        </div>
+        <div class="hud-stats">
+            <!-- HP Status bar -->
+            <div id="hp-status" class="hp-status hp-stable">
+                <span id="hp-icon">🟢</span>
+                <span id="hp-text">ÉTAT : STABLE</span>
+                <span id="hp-value">30 PV</span>
+            </div>
+
+            <!-- Probabilistic Alert -->
+            <div id="threat-alert" class="threat-card hidden">
+                <div class="threat-header">⚠️ RISQUE DE SORT DE ZONE</div>
+                <div class="threat-body">
+                    <span id="aoe-prob" class="threat-value">0</span>%
+                </div>
+                <div id="opp-stats" class="opp-stats"></div>
+            </div>
+
+            <!-- AoE Risk Alert (Turn/Gold) -->
+            <div id="aoe-risk-alert" class="aoe-flash-alert hidden">
+                ⚠️ RISQUE DE SORT DE ZONE : ÉLEVÉ
+            </div>
+
+            <!-- Priority Target Badge -->
+            <div id="priority-badge" class="priority-badge hidden">
+                🎯 CIBLE PRIORITAIRE : <span id="priority-name">...</span>
+            </div>
+        </div>
+
+        <!-- AI ADVICE PANEL (BOTTOM) -->
+        <div id="groq-advice-panel">
+            <div class="groq-header">CONSEIL IA (GROQ)</div>
+            <div id="groq-advice-text">En attente d'analyse...</div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settings-panel" class="settings-window hidden">
+            <div class="settings-header">
+                <h3>Configuration</h3>
+                <div id="close-settings" class="icon-btn close-btn">✖</div>
+            </div>
+            <div class="setting-item">
+                <label>Clé API Groq:</label>
+                <input type="password" id="groq-key" placeholder="Entrez votre clé Groq">
+            </div>
+            <div class="setting-item">
+                <label>Adresse Wallet (Immutable):</label>
+                <input type="text" id="wallet-address" placeholder="0x...">
+            </div>
+            <div class="setting-item">
+                <label>Langue de l'IA:</label>
+                <div class="lang-toggle">
+                    <button id="lang-fr" class="lang-btn">FR</button>
+                    <button id="lang-en" class="lang-btn">EN</button>
+                </div>
+            </div>
+            <div class="settings-actions">
+                <button id="sync-deck">Sync Deck</button>
+                <button id="save-key">Sauvegarder</button>
+            </div>
+            <span id="save-status"></span>
+        </div>
     </div>
 
     <script src="renderer.js"></script>

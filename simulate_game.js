@@ -1,48 +1,51 @@
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 
-// Chemin vers ton fichier log
 const logPath = path.join(process.env.USERPROFILE, 'AppData', 'LocalLow', 'Ubisoft', 'Might and Magic Fates', 'Player.log');
 
 const simulationEvents = [
-    { event: "Match Started", note: "L'interface doit s'initialiser (Reset)" },
-    { event: "Turn Start: Player Turn 1", note: "Indicateur VERT - Tout est calme" },
-    { event: "Card Played: Fantassin du Havre", note: "L'IA enregistre ton unité (Attaque: 2)" },
-    { event: "Turn Start: Opponent Turn 1", note: "L'IA attend l'action adverse" },
-    { event: "Card Played: Opponent-Squelette", note: "Menace mineure détectée" },
-    { event: "Turn Start: Player Turn 2", note: "Calcul des options..." },
-    { event: "Card Played: Arbalétrier", note: "Deuxième unité (Attaque cumulée: 5)" },
-    { event: "Health Change: Opponent=25", note: "Pression sur l'adversaire" },
-    { event: "Turn Start: Opponent Turn 4", note: "L'adversaire a 4 Or - Prudence" },
-    { event: "Card Played: Opponent-Vampire", note: "CIBLE PRIORITAIRE - Alerte Orange" },
-    { event: "Health Change: Player=22", note: "L'adversaire attaque" },
-    { event: "Turn Start: Opponent Turn 5", note: "ALERTE AOE : RISQUE ÉLEVÉ (5 Or dispos)" },
-    { event: "Health Change: Player=14", note: "🔴 DANGER : SEUIL CRITIQUE" },
-    { event: "Turn Start: Player Turn 6", note: "Ton tour - L'IA cherche le Lethal" },
-    { event: "Card Played: Archange", note: "Grosse unité posée (Attaque cumulée: 15)" },
-    { event: "Health Change: Opponent=12", note: "🔥 VICTOIRE DISPONIBLE (15 dégâts > 12 PV)" },
-    { event: "Match Ended: Victory", note: "Reset - L'interface doit s'effacer" }
+    { event: "Match Started", note: "RESET : Nettoyage de l'interface" },
+    { event: "Turn Start: Player Turn 1", note: "Ton Tour : Statut VERT" },
+    { event: "Card Played: Fantassin du Havre", note: "Unité posée (ATK: 2)" },
+    { event: "Turn Start: Opponent Turn 1", note: "DÉBUT TOUR ADVERSE : Surveillance activée" },
+    { event: "Gold Change: Opponent=2", note: "LIVE : L'adversaire génère 2 Or" },
+    { event: "Card Played: Opponent-Squelette", note: "ACTION ENNEMIE : Squelette détecté" },
+    { event: "Turn Start: Player Turn 2", note: "Ton Tour : Analyse des options" },
+    { event: "Card Played: Arbalétrier", note: "Unité 2 posée (ATK Totale: 5)" },
+    { event: "Turn Start: Opponent Turn 4", note: "TOUR ADVERSE : Il accumule ses ressources" },
+    { event: "Gold Change: Opponent=4", note: "LIVE : L'adversaire a 4 Or" },
+    { event: "Card Played: Opponent-Vampire", note: "ALERTE : Cible Prioritaire (Vol de vie)" },
+    { event: "Turn Start: Player Turn 5", note: "Ton Tour : Préparation du contre" },
+    { event: "Card Played: Chevalier Impérial", note: "Grosse unité (PV: 5) pour contrer l'AoE" },
+    { event: "Turn Start: Opponent Turn 5", note: "⚠️ MOMENT CRITIQUE : Tour 5 adverse" },
+    { event: "Gold Change: Opponent=5", note: "⚡ LIVE : 5 Or détectés. Risque AoE MAXIMUM" },
+    { event: "Card Played: Opponent-Pluie de Feu", note: "💥 SORT JOUÉ : L'IA enregistre l'utilisation de l'AoE" },
+    { event: "Health Change: Player=14", note: "🔴 DANGER : Seuil Critique (PV: 14)" },
+    { event: "Turn Start: Player Turn 6", note: "Ton Tour : Analyse du deck adverse (1 AoE restante)" },
+    { event: "Match Ended: Victory", note: "RESET FINAL" }
 ];
 
-async function runSimulation() {
-    console.log("--- Début de la simulation stratégique ---");
-    
-    for (const step of simulationEvents) {
-        const timestamp = new Date().toISOString();
-        const line = `[${timestamp}] ${step.event}\n`;
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
 
+async function runSimulation() {
+    console.log("--- SIMULATION LIVE TRACKER (MARS 2026) ---");
+    console.log("Appuyez sur [ENTRÉE] pour envoyer l'événement suivant.\n");
+
+    for (let i = 0; i < simulationEvents.length; i++) {
+        const step = simulationEvents[i];
+        await new Promise(resolve => rl.question(`[Step ${i+1}/${simulationEvents.length}] ${step.note} >`, () => resolve()));
+
+        const line = `[${new Date().toISOString()}] ${step.event}\n`;
         try {
             fs.appendFileSync(logPath, line);
-            console.log(`[LOG]: ${step.event.padEnd(35)} | [IA]: ${step.note}`);
+            console.log(`✅ Envoyé au log : ${step.event}`);
         } catch (err) {
-            console.error(`Erreur : ${err.message}`);
+            console.error(`❌ Erreur d'écriture : ${err.message}`);
         }
-
-        // Délai de 6 secondes pour avoir le temps de lire l'overlay
-        await new Promise(resolve => setTimeout(resolve, 6000));
     }
-    
-    console.log("--- Simulation terminée et log réinitialisé ---");
+    console.log("\nSimulation terminée.");
+    rl.close();
 }
 
 runSimulation();

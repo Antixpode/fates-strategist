@@ -3,6 +3,7 @@ import * as path from 'path';
 import { startWatching, stopWatching, logEmitter } from './watcher';
 import { initializeAI, analyzeEvent, setLanguage } from './analyzer';
 import { syncWalletAssets } from './immutable';
+import { runAutoSync } from './AutoSyncEngine';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 
@@ -51,6 +52,16 @@ function createWindow() {
     const logPath = process.env.LOG_FILE_PATH || 'C:\\Users\\mrrol\\AppData\\LocalLow\\Ubisoft\\Might and Magic Fates\\Player.log';
     startWatching(logPath);
 
+    // AutoSync at launch (once window is ready)
+    mainWindow.webContents.once('did-finish-load', () => {
+        mainWindow?.webContents.send('sync-started');
+        runAutoSync(mainWindow, lang).then(result => {
+            console.log(`[Main] AutoSync done: ${result.redeemCodes.length} codes, ${result.updatedCards.length} updates`);
+        }).catch(err => {
+            console.error('[Main] AutoSync failed:', err);
+        });
+    });
+
     let lastThreatState: any = null;
 
     const handleEvent = async (type: string, data: string) => {
@@ -64,9 +75,17 @@ function createWindow() {
         }
     };
 
-    logEmitter.on('cardPlayed', (data) => handleEvent('Card Played', data));
+    logEmitter.on('cardPlayed', (data, detail) => {
+        // Si le watcher a résolu un nom (ex: Vampire), on l'affiche à la place du code
+        const displayData = detail?.cardName ? `${data} (${detail.cardName})` : data;
+        handleEvent('Card Played', displayData);
+    });
     logEmitter.on('turnStart', (data) => handleEvent('Turn Start', data));
     logEmitter.on('healthChange', (data) => handleEvent('Health Change', data));
+
+    logEmitter.on('matchReset', () => {
+        mainWindow?.webContents.send('match-reset');
+    });
 
     logEmitter.on('threatUpdate', (threatState) => {
         lastThreatState = threatState;
