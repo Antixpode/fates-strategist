@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node node_modules/electron/cli.js .",
     "build": "node node_modules/typescript/bin/tsc",
-    "postbuild": "node -e \"const fs=require('fs');fs.mkdirSync('dist/Renderer',{recursive:true});fs.cpSync('src/Renderer/index.html','dist/Renderer/index.html');fs.cpSync('src/Renderer/styles.css','dist/Renderer/styles.css')\"",
+    "postbuild": "node -e \"const fs=require('fs');fs.mkdirSync('dist/Renderer',{recursive:true});fs.cpSync('src/Renderer/index.html','dist/Renderer/index.html');fs.cpSync('src/Renderer/styles.css','dist/Renderer/styles.css');fs.cpSync('src/Renderer/assets','dist/Renderer/assets',{recursive:true})\"",
     "dev": "node node_modules/npm-run-all/bin/npm-run-all/index.js --parallel watch:ts watch:electron",
     "watch:ts": "node node_modules/typescript/bin/tsc -w",
     "watch:electron": "node node_modules/nodemon/bin/nodemon.js --watch dist --exec \"node node_modules/electron/cli.js .\"",

@@ -8,6 +8,7 @@ export interface CardDetails {
     attack: number;
     health: number;
     cost: number;
+    goldValue?: number;
     keywords: string[];
 }
 
@@ -15,6 +16,7 @@ import { app } from 'electron';
 
 const userDataPath = app ? app.getPath('userData') : path.join(__dirname, '..');
 const DECK_FILE_PATH = path.join(userDataPath, 'my_deck.json');
+export const SET_DATA_PATH = path.join(__dirname, '..', 'card_database_pro.json');
 
 // Initialize the BlockchainData client for Mainnet
 const client = new blockchainData.BlockchainData({
@@ -123,23 +125,35 @@ export function getCardDetails(cardName: string): CardDetails | null {
             console.error("Error reading deck file:", e);
         }
     }
-
-    // 2. Si non trouvé ou my_deck.json n'existe pas, Fallback sur le starter_set.json
-    const starterSetPath = path.join(__dirname, '..', 'starter_set.json');
-    if (fs.existsSync(starterSetPath)) {
+    // 2. Si non trouvé ou my_deck.json n'existe pas, Fallback sur le card_database.json
+    if (fs.existsSync(SET_DATA_PATH)) {
         try {
-            const starterData = fs.readFileSync(starterSetPath, 'utf-8');
-            const starterMap = JSON.parse(starterData);
+            const rawData = fs.readFileSync(SET_DATA_PATH, 'utf-8');
+            const data = JSON.parse(rawData);
 
-            // Recherche directe dans les clés (qui sont les noms)
-            const starterKeys = Object.keys(starterMap);
-            const matchingKey = starterKeys.find(k => k.toLowerCase() === cardName.toLowerCase());
+            const allCards: any[] = [];
+            // Handle both structured (ST_BASE etc) and flat formats
+            if (data.ST_BASE || data.ELITE_LEGENDARY_THREATS || data.DUNGEON_EXPANSION) {
+                if (data.ST_BASE) allCards.push(...Object.values(data.ST_BASE));
+                if (data.ELITE_LEGENDARY_THREATS) allCards.push(...Object.values(data.ELITE_LEGENDARY_THREATS));
+                if (data.DUNGEON_EXPANSION) allCards.push(...Object.values(data.DUNGEON_EXPANSION));
+            } else {
+                allCards.push(...Object.values(data));
+            }
 
-            if (matchingKey) {
-                return starterMap[matchingKey] as CardDetails;
+            // 1. Match exact
+            let foundCard = allCards.find((c: any) => c.name && c.name.toLowerCase() === cardName.toLowerCase());
+            
+            // 2. Match partial if not found
+            if (!foundCard) {
+                foundCard = allCards.find((c: any) => c.name && (c.name.toLowerCase().includes(cardName.toLowerCase()) || cardName.toLowerCase().includes(c.name.toLowerCase())));
+            }
+
+            if (foundCard) {
+                return foundCard as CardDetails;
             }
         } catch (e) {
-            console.error("Error reading starter_set.json:", e);
+            console.error("Error reading card_database_pro.json:", e);
         }
     }
 

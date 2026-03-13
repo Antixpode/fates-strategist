@@ -10,68 +10,64 @@
 <body class="overlay-body">
 
     <div id="app-container">
-        <!-- TOP: Title & Controls -->
+        <!-- TOP: Title -->
         <div class="header-overlay">
             <div class="title-section">
-                <h1>Fates Strategist</h1>
-                <div class="status-indicator">
-                    <span id="strat-dot" class="strategic-dot dot-grey"></span>
-                    <span id="strat-advice">En veille...</span>
-                </div>
-            </div>
-            <div class="controls">
-                <div id="sync-status" class="sync-indicator sync-syncing" title="Synchronisation...">🔄</div>
-                <div id="settings-toggle" class="icon-btn">⚙️</div>
-                <div id="close-app" class="icon-btn close-btn">✖</div>
+                <h1>🛡️ Fates Strategist</h1>
             </div>
         </div>
 
-        <!-- MAIN FEED -->
-        <div id="feed" class="log-feed">
-            <div class="message default-msg">En attente d'événements du jeu...</div>
+        <!-- BOARD VISUALIZATION (12 Zones) -->
+        <div id="game-board-container" class="board-container">
+            <!-- Ligne 1 : Adversaire (Rouge dominant) -->
+            <div class="board-row opponent-row" id="opponent-board">
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+            </div>
+
+            <!-- Ligne 2 : Tes unités (Bleu dominant) -->
+            <div class="board-row allied-row" id="allied-board">
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+                <div class="card-slot empty"></div>
+            </div>
         </div>
 
-        <!-- TARGETING ADVICE (Integrated into old layout) -->
-        <div id="targeting-advice-container" class="targeting-container hidden">
-            <div id="targeting-advice" class="targeting-action"></div>
-        </div>
-
-        <!-- OPPONENT LIVE ACTION -->
-        <div id="opponent-action" class="opponent-action-bar hidden">
-            <span id="opponent-action-text">...</span>
-        </div>
-        <div class="hud-stats">
-            <!-- HP Status bar -->
+        <!-- MIDDLE CONTROLS & STATUS -->
+        <div class="middle-controls">
+            <!-- HP Status -->
             <div id="hp-status" class="hp-status hp-stable">
                 <span id="hp-icon">🟢</span>
-                <span id="hp-text">ÉTAT : STABLE</span>
                 <span id="hp-value">30 PV</span>
             </div>
 
-            <!-- Probabilistic Alert -->
-            <div id="threat-alert" class="threat-card hidden">
-                <div class="threat-header">⚠️ RISQUE DE SORT DE ZONE</div>
-                <div class="threat-body">
-                    <span id="aoe-prob" class="threat-value">0</span>%
-                </div>
-                <div id="opp-stats" class="opp-stats"></div>
+            <!-- App State -->
+            <div class="status-indicator">
+                <span id="strat-dot" class="strategic-dot dot-grey"></span>
+                <span id="strat-advice">En veille...</span>
             </div>
 
-            <!-- AoE Risk Alert (Turn/Gold) -->
-            <div id="aoe-risk-alert" class="aoe-flash-alert hidden">
-                ⚠️ RISQUE DE SORT DE ZONE : ÉLEVÉ
-            </div>
-
-            <!-- Priority Target Badge -->
-            <div id="priority-badge" class="priority-badge hidden">
-                🎯 CIBLE PRIORITAIRE : <span id="priority-name">...</span>
+            <!-- Les 5 boutons -->
+            <div class="controls">
+                <div id="debug-toggle" class="icon-btn" title="Mode Debug">🐛</div>
+                <div id="db-btn" class="icon-btn" title="Gérer Cartes Inconnues">📚</div>
+                <div id="manual-reset" class="icon-btn" title="Réinitialiser">🧹</div>
+                <div id="settings-toggle" class="icon-btn" title="Configuration">⚙️</div>
+                <div id="close-app" class="icon-btn close-btn" title="Fermer">✖</div>
             </div>
         </div>
 
         <!-- AI ADVICE PANEL (BOTTOM) -->
-        <div id="groq-advice-panel">
+        <div id="groq-advice-panel" class="advice-panel">
             <div class="groq-header">CONSEIL IA (GROQ)</div>
-            <div id="groq-advice-text">En attente d'analyse...</div>
+            <div id="groq-advice-text" class="advice-content">En attente des cartes ou actions du jeu...</div>
         </div>
 
         <!-- Settings Panel -->
@@ -95,11 +91,66 @@
                     <button id="lang-en" class="lang-btn">EN</button>
                 </div>
             </div>
+            <div class="setting-item">
+                <label>Style de jeu :</label>
+                <div class="mode-toggle">
+                    <button id="mode-sentinel" class="mode-btn mode-active" title="Prudent & Défensif">🛡️
+                        Sentinelle</button>
+                    <button id="mode-berserker" class="mode-btn" title="Agressif & All-in">⚔️ Berserker</button>
+                    <button id="mode-auto" class="mode-btn" title="IA Adaptative">🧠 Auto</button>
+                </div>
+            </div>
             <div class="settings-actions">
                 <button id="sync-deck">Sync Deck</button>
                 <button id="save-key">Sauvegarder</button>
             </div>
             <span id="save-status"></span>
+        </div>
+        <!-- Debug Panel -->
+        <div id="debug-panel" class="settings-window hidden"
+            style="left: -320px; transition: left 0.3s; position: absolute;">
+            <div class="settings-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h3>⚙️ Debug Panel</h3>
+                    <div class="status-indicator">
+                        <span id="watcher-led" class="strategic-dot dot-grey"></span> Watcher
+                    </div>
+                </div>
+                <div id="close-debug" class="icon-btn close-btn">✖</div>
+            </div>
+
+            <div class="debug-section" style="margin-bottom: 10px;">
+                <h4>Flux de Log en Direct</h4>
+                <div id="debug-log-feed"
+                    style="background: rgba(0,0,0,0.5); padding: 5px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 10px; border-radius: 4px; display: flex; flex-direction: column; justify-content: flex-end;">
+                    <!-- Logs ext-->
+                </div>
+            </div>
+
+            <div class="debug-section" style="margin-bottom: 10px; font-size: 12px;">
+                <h4>Internal State</h4>
+                <div
+                    style="background: rgba(255,165,0,0.1); border-left: 3px solid orange; padding: 5px; margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #ff9800; font-weight: bold;">LAST ENEMY CARD:</span>
+                        <span id="debug-last-card" style="font-weight: bold; color: #fff;">-</span>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                    <span style="color: #aaa;">Opponent_Gold:</span> <span id="debug-opp-gold"
+                        style="font-weight: bold; color: gold;">0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                    <span style="color: #aaa;">Active_Mode:</span> <span id="debug-active-mode"
+                        style="font-weight: bold;">Sentinelle</span>
+                </div>
+            </div>
+
+            <div class="settings-actions" style="margin-top: 10px;">
+                <button id="force-reload-db"
+                    style="width: 100%; padding: 8px; background: #444; color: white; border: none; border-radius: 4px; cursor: pointer;">Force
+                    Reload Database</button>
+            </div>
         </div>
     </div>
 

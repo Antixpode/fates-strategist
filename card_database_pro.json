@@ -1,0 +1,119 @@
+{
+  "card.unit.blazing_glory.name": {
+    "name": "Gloire Éclatante",
+    "rarity": "Common",
+    "faction": "Haven",
+    "attack": 4,
+    "health": 4,
+    "cost": 4,
+    "keywords": ["Flying"]
+  },
+  "card.unit.loyal_griffin.name": {
+    "name": "Griffon Loyal",
+    "rarity": "Common",
+    "faction": "Haven",
+    "attack": 3,
+    "health": 4,
+    "cost": 3,
+    "keywords": ["Flying", "Retaliate"]
+  },
+  "card.unit.wandering_bard.name": {
+    "name": "Barde Errant",
+    "rarity": "Common",
+    "faction": "Neutral",
+    "attack": 1,
+    "health": 3,
+    "cost": 2,
+    "keywords": ["Support"]
+  },
+  "card.unit.mercenary_archer.name": {
+    "name": "Archer Mercenaire",
+    "rarity": "Common",
+    "faction": "Neutral",
+    "attack": 2,
+    "health": 2,
+    "cost": 2,
+    "keywords": ["Ranged"]
+  },
+  "card.unit.legionnaire.name": {
+    "name": "Légionnaire",
+    "rarity": "Common",
+    "faction": "Haven",
+    "attack": 2,
+    "health": 4,
+    "cost": 2,
+    "keywords": ["Taunt"]
+  },
+  "card.unit.giant_turtle.name": {
+    "name": "Tortue Géante",
+    "rarity": "Common",
+    "faction": "Neutral",
+    "attack": 1,
+    "health": 6,
+    "cost": 3,
+    "keywords": ["Armor"]
+  },
+  "card.unit.dire_wolf.name": {
+    "name": "Loup Sinistre",
+    "rarity": "Common",
+    "faction": "Neutral",
+    "attack": 3,
+    "health": 2,
+    "cost": 2,
+    "keywords": ["Charge"]
+  },
+  "card.unit.archangel.name": {
+    "name": "Archange",
+    "rarity": "Legendary",
+    "faction": "Haven",
+    "attack": 6,
+    "health": 6,
+    "cost": 6,
+    "keywords": ["Flying", "Resurrection"]
+  },
+  "card.unit.pit_lord.name": {
+    "name": "Seigneur des Abîmes",
+    "rarity": "Elite",
+    "faction": "Inferno",
+    "attack": 5,
+    "health": 7,
+    "cost": 5,
+    "keywords": ["Cleave", "AoE"]
+  },
+  "card.unit.fate_weaver.name": {
+    "name": "Tisseuse de Destin",
+    "rarity": "Legendary",
+    "faction": "Necropolis",
+    "attack": 4,
+    "health": 6,
+    "cost": 6,
+    "keywords": ["Mind Control"]
+  },
+  "card.unit.black_dragon.name": {
+    "name": "Dragon Noir",
+    "rarity": "Legendary",
+    "faction": "Dungeon",
+    "attack": 8,
+    "health": 8,
+    "cost": 7,
+    "keywords": ["Flying", "Spell Immune"]
+  },
+  "card.unit.stalker.name": {
+    "name": "Traqueur Souterrain",
+    "rarity": "Rare",
+    "faction": "Dungeon",
+    "attack": 3,
+    "health": 2,
+    "cost": 3,
+    "keywords": ["Stealth"]
+  },
+  "card.unit.assassin.name": {
+    "name": "Assassin Sombre",
+    "rarity": "Common",
+    "faction": "Dungeon",
+    "attack": 2,
+    "health": 2,
+    "cost": 2,
+    "keywords": ["Stealth", "Poison"]
+  }
+}

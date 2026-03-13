@@ -1,6 +1,8 @@
 import { CardDetails } from './immutable';
 
 export enum PriorityLevel {
+    NONE = 0,
+    LOW = 1,
     NORMAL = 3,
     HIGH = 4,
     CRITICAL = 5

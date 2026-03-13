@@ -39,7 +39,7 @@ body {
 /* HEADER — Draggable region */
 .header-overlay {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     background: var(--bg-dark);
     padding: 8px 15px;
@@ -47,6 +47,17 @@ body {
     border: 1px solid var(--glass);
     -webkit-app-region: drag;
     cursor: move;
+}
+
+.middle-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-dark);
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--glass);
+    margin-top: 5px;
 }
 
 h1 {
@@ -152,36 +163,143 @@ h1 {
     color: rgba(255, 255, 255, 0.3);
 }
 
-/* TARGETING CONTAINER — Primary Focus */
-.targeting-container {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(15, 23, 42, 0.95));
-    border: 2px solid var(--accent-blue);
-    padding: 14px 20px;
+/* GAME BOARD (Stats-First) */
+.board-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.4);
     border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
-    animation: focusPulse 2s infinite;
+    margin: 5px 0;
+    border: 1px solid var(--glass);
     order: -1;
-    /* Force to top */
 }
 
-.targeting-action {
-    color: #fff;
+.board-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    justify-content: center;
+}
+
+.card-slot {
+    position: relative;
+    aspect-ratio: 3/4;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
     font-weight: bold;
-    font-size: 1.2rem;
-    letter-spacing: 0.3px;
+    color: #fff;
+    overflow: visible;
+    /* To allow stat tags to overflow */
+    transition: all 0.2s ease;
 }
 
-@keyframes focusPulse {
+.card-slot.empty {
+    opacity: 0.5;
+}
 
-    0%,
-    100% {
-        box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-    }
+.card-slot.filled {
+    border-style: solid;
+    background: rgba(20, 20, 30, 0.8);
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+}
 
-    50% {
-        box-shadow: 0 0 35px rgba(59, 130, 246, 0.6);
-    }
+.opponent-row .card-slot.filled {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3), inset 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+.allied-row .card-slot.filled {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3), inset 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+/* 4 Corners Stats */
+.stat-tag {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-shadow: 1px 1px 2px #000;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    z-index: 2;
+}
+
+.stat-cost {
+    top: -6px;
+    left: -6px;
+    background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+    /* Cost usually blueish or grey */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.stat-income {
+    top: -6px;
+    right: -6px;
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+    /* Gold */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.stat-attack {
+    bottom: -6px;
+    left: -6px;
+    background: linear-gradient(135deg, #ef4444, #991b1b);
+    /* Attack Red/Orange */
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.stat-health {
+    bottom: -6px;
+    right: -6px;
+    background: linear-gradient(135deg, #22c55e, #14532d);
+    /* Health Green */
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.card-name-label {
+    font-size: 0.65rem;
+    text-align: center;
+    line-height: 1.1;
+    padding: 0 4px;
+    z-index: 1;
+    word-break: break-word;
+}
+
+/* Effects Row */
+.effects-row {
+    margin-top: 4px;
+}
+
+.effect-slot {
+    height: 30px;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px dashed rgba(168, 85, 247, 0.4);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: var(--accent-purple);
+    transition: all 0.2s ease;
+}
+
+.effect-slot.filled {
+    border-style: solid;
+    background: rgba(168, 85, 247, 0.3);
+    color: #fff;
+    text-shadow: 0 0 5px var(--accent-purple);
 }
 
 /* OPPONENT LIVE ACTION BAR */
@@ -296,24 +414,77 @@ h1 {
     font-size: 0.8rem;
 }
 
+.mulligan-badge {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    border: 2px solid var(--accent-blue);
+    color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.85rem;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 /* AI ADVICE PANEL */
-#groq-advice-panel {
+.advice-panel {
     background: var(--bg-dark);
-    border-top: 2px solid var(--accent-purple);
-    padding: 12px;
-    border-radius: 8px 8px 0 0;
+    border: 1px solid var(--accent-purple);
+    padding: 15px;
+    border-radius: 8px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    margin-top: 5px;
 }
 
 .groq-header {
-    font-size: 0.6rem;
+    font-size: 0.75rem;
     color: var(--accent-purple);
+    text-transform: uppercase;
     font-weight: bold;
-    margin-bottom: 4px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+    padding-bottom: 5px;
 }
 
-#groq-advice-text {
-    font-style: italic;
-    font-size: 0.85rem;
+.advice-content {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    white-space: pre-wrap; /* allow nice formatting */
+    color: #e2e8f0;
+}
+
+.highlight-player {
+    color: var(--accent-blue);
+    font-weight: bold;
+    border: 1px solid var(--accent-blue);
+    padding: 1px 3px;
+    border-radius: 4px;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.highlight-enemy {
+    color: var(--accent-red);
+    font-weight: bold;
+    border: 1px solid var(--accent-red);
+    padding: 1px 3px;
+    border-radius: 4px;
+    background: rgba(239, 68, 68, 0.1);
 }
 
 /* SETTINGS */
@@ -328,6 +499,29 @@ h1 {
     border: 1px solid var(--accent-blue);
     width: 300px;
     z-index: 100;
+}
+
+/* Debug panel specific adjustments — Sidebar mode to avoid truncation */
+#debug-panel {
+    top: 0 !important;
+    left: -320px;
+    /* Hidden by default */
+    transform: none !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    width: 320px !important;
+    border-radius: 0 12px 12px 0 !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    margin: 0 !important;
+    overflow-y: auto;
+}
+
+#debug-log-feed {
+    height: 350px;
+    overflow-y: auto;
+    margin-top: 10px;
 }
 
 .settings-header {
@@ -368,6 +562,48 @@ h1 {
     border: 1px solid #334155;
     color: #fff;
     border-radius: 4px;
+}
+
+/* MODE TOGGLE */
+.mode-toggle {
+    display: flex;
+    gap: 6px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 6px 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-btn:hover {
+    border-color: var(--accent-blue);
+    color: #fff;
+}
+
+.mode-btn.mode-active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+}
+
+.mode-btn.mode-active-berserker {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+}
+
+/* MODE BADGE in title */
+#mode-badge {
+    font-size: 1rem;
+    transition: all 0.3s ease;
 }
 
 .settings-actions {

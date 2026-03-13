@@ -1,11 +1,19 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import * as path from 'path';
 import { startWatching, stopWatching, logEmitter } from './watcher';
-import { initializeAI, analyzeEvent, setLanguage } from './analyzer';
+import { initializeAI, analyzeEvent, setLanguage, analyzeMulligan } from './analyzer';
 import { syncWalletAssets } from './immutable';
 import { runAutoSync } from './AutoSyncEngine';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
+
+process.on('uncaughtException', (err) => {
+    try {
+        const p = path.join(process.env.USERPROFILE || 'C:\\', 'fates_crash.log');
+        fs.writeFileSync(p, String(err.stack));
+    } catch (e) { }
+    process.exit(1);
+});
 
 dotenv.config();
 
@@ -64,27 +72,53 @@ function createWindow() {
 
     let lastThreatState: any = null;
 
-    const handleEvent = async (type: string, data: string) => {
-        // Calculer le ThreatState d'abord pour avoir le simplifiedMessage
+    const handleEvent = (type: string, data: string) => {
+        // 1. Immediate UI update (non-blocking)
         const threatState = lastThreatState;
         const simplified = threatState?.simplifiedMessage || data;
         mainWindow?.webContents.send('log-event', { type, data, simplified });
-        const analysis = await analyzeEvent(type, data, lastThreatState);
-        if (analysis) {
-            mainWindow?.webContents.send('ai-analysis', { type, analysis });
-        }
+
+        // 2. AI analysis — fire and forget (does NOT block the UI)
+        analyzeEvent(type, data, lastThreatState).then(analysis => {
+            if (analysis) {
+                mainWindow?.webContents.send('ai-analysis', { type, analysis });
+            }
+        }).catch(err => console.error('[AI] Analysis error:', err));
     };
 
-    logEmitter.on('cardPlayed', (data, detail) => {
-        // Si le watcher a résolu un nom (ex: Vampire), on l'affiche à la place du code
-        const displayData = detail?.cardName ? `${data} (${detail.cardName})` : data;
+    logEmitter.on('cardPlayed', (payload) => {
+        // Envoi de la donnée propre
+        const detail = payload.detail || payload;
+        const logLine = payload.logLine || detail.raw || detail.cardId || 'Card Played';
+        const displayData = detail?.cardName ? `${logLine} (${detail.cardName})` : logLine;
         handleEvent('Card Played', displayData);
     });
-    logEmitter.on('turnStart', (data) => handleEvent('Turn Start', data));
-    logEmitter.on('healthChange', (data) => handleEvent('Health Change', data));
+    logEmitter.on('turnStart', (payload) => handleEvent('Turn Start', payload.logLine || payload));
+    logEmitter.on('healthChange', (payload) => handleEvent('Health Change', payload.logLine || payload));
+    logEmitter.on('unitDied', (data, detail) => {
+        const displayData = detail?.cardName ? `${data} (${detail.cardName})` : data;
+        handleEvent('Unit Died', displayData);
+    });
+    logEmitter.on('opponentGoldProduced', (data) => handleEvent('opponentGoldProduced', data));
+
+    logEmitter.on('mulliganPhase', (data) => {
+        analyzeMulligan(data).then(analysis => {
+            if (analysis) {
+                mainWindow?.webContents.send('mulligan-advice', analysis);
+            }
+        }).catch(err => console.error('[AI] Mulligan analysis error:', err));
+    });
+
+    logEmitter.on('rawLog', (info) => {
+        mainWindow?.webContents.send('debug-log', info);
+    });
 
     logEmitter.on('matchReset', () => {
         mainWindow?.webContents.send('match-reset');
+    });
+
+    logEmitter.on('log-connected', () => {
+        mainWindow?.webContents.send('log-connected');
     });
 
     logEmitter.on('threatUpdate', (threatState) => {
@@ -146,10 +180,32 @@ ipcMain.on('set-ai-lang', (event, lang: 'fr' | 'en') => {
     process.env.AI_LANG = lang;
 });
 
+// IPC pour changer le mode de jeu
+ipcMain.on('set-play-mode', (event, mode: string) => {
+    const { setPlayMode } = require('./analyzer');
+    setPlayMode(mode);
+    console.log(`[Main] Play mode set to: ${mode}`);
+});
+
 ipcMain.handle('sync-deck', async (event, walletAddress) => {
     return await syncWalletAssets(walletAddress);
 });
 
 ipcMain.on('quit-app', () => {
     app.quit();
+});
+
+ipcMain.on('reload-db', () => {
+    const { reloadDatabase } = require('./watcher');
+    reloadDatabase();
+});
+
+ipcMain.on('manual-reset', () => {
+    const { manualReset } = require('./watcher');
+    manualReset();
+});
+
+ipcMain.on('open-card-db', () => {
+    const dbPath = path.join(__dirname, '..', 'card_database_pro.json');
+    shell.openPath(dbPath);
 });

@@ -1,7 +1,6 @@
 const { ipcRenderer } = require('electron');
 
 // ─── DOM refs ────────────────────────────────────────────────────────────────
-const feed = document.getElementById('feed');
 const settingsToggle = document.getElementById('settings-toggle');
 const closeAppBtn = document.getElementById('close-app');
 const settingsPanel = document.getElementById('settings-panel');
@@ -9,29 +8,34 @@ const groqKeyInput = document.getElementById('groq-key') as HTMLInputElement;
 const walletInput = document.getElementById('wallet-address') as HTMLInputElement;
 const saveKeyBtn = document.getElementById('save-key');
 const syncDeckBtn = document.getElementById('sync-deck');
+const dbBtn = document.getElementById('db-btn');
 const saveStatus = document.getElementById('save-status');
 const langFrBtn = document.getElementById('lang-fr');
 const langEnBtn = document.getElementById('lang-en');
+const manualResetBtn = document.getElementById('manual-reset');
 
 // HP status
 const hpStatus = document.getElementById('hp-status');
 const hpIcon = document.getElementById('hp-icon');
-const hpText = document.getElementById('hp-text');
 const hpValue = document.getElementById('hp-value');
 
-// Alerts & badges
-const threatAlert = document.getElementById('threat-alert');
-const aoeProb = document.getElementById('aoe-prob');
-const oppStats = document.getElementById('opp-stats');
-const aoeRiskAlert = document.getElementById('aoe-risk-alert');
-const priorityBadge = document.getElementById('priority-badge');
-const priorityName = document.getElementById('priority-name');
-const targetingContainer = document.getElementById('targeting-advice-container');
-const targetingAdvice = document.getElementById('targeting-advice');
+// Mock Card Database for faction mapping (Simplified)
+const factionMap: Record<string, string> = {
+    'Gloire Éclatante': 'haven',
+    'Griffon Loyal': 'haven',
+    'Légionnaire': 'haven',
+    'Archange': 'haven',
+    'Seigneur des Abîmes': 'inferno',
+    'Tisseuse de Destin': 'necropolis',
+    'Dragon Spectral': 'necropolis',
+    'Dragon Noir': 'dungeon',
+    'Assassin Sombre': 'dungeon',
+    'Traqueur Souterrain': 'dungeon',
+    'Rakshasa Raja': 'academy',
+    'Loup Sinistre': 'neutral',
+    'Tortue Géante': 'neutral'
+};
 
-// Opponent action
-const opponentActionBar = document.getElementById('opponent-action');
-const opponentActionText = document.getElementById('opponent-action-text');
 const appContainer = document.getElementById('app-container');
 
 // Strategic dot
@@ -43,11 +47,126 @@ const groqAdviceText = document.getElementById('groq-advice-text');
 
 let currentLang: 'fr' | 'en' = 'fr';
 
+// ─── Debug Panel ─────────────────────────────────────────────────────────────
+const debugPanel = document.getElementById('debug-panel');
+const debugToggle = document.getElementById('debug-toggle');
+const debugLogFeed = document.getElementById('debug-log-feed');
+const debugLastCard = document.getElementById('debug-last-card');
+const debugOppGold = document.getElementById('debug-opp-gold');
+const debugActiveMode = document.getElementById('debug-active-mode');
+const watcherLed = document.getElementById('watcher-led');
+const forceReloadDbBtn = document.getElementById('force-reload-db');
+
+debugToggle?.addEventListener('click', () => {
+    if (debugPanel) {
+        if (debugPanel.classList.contains('hidden')) {
+            debugPanel.classList.remove('hidden');
+            setTimeout(() => { debugPanel.style.left = '0'; }, 10);
+        } else {
+            debugPanel.style.left = '-320px';
+            setTimeout(() => { debugPanel.classList.add('hidden'); }, 300);
+        }
+    }
+});
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'F12') {
+        debugToggle?.click();
+    }
+});
+
+forceReloadDbBtn?.addEventListener('click', () => {
+    ipcRenderer.send('reload-db');
+    if (forceReloadDbBtn) {
+        const originalText = forceReloadDbBtn.innerText;
+        forceReloadDbBtn.innerText = '✅ Reloaded!';
+        setTimeout(() => forceReloadDbBtn.innerText = originalText, 2000);
+    }
+});
+
+const closeDebugBtn = document.getElementById('close-debug');
+closeDebugBtn?.addEventListener('click', () => {
+    if (debugPanel) {
+        debugPanel.style.left = '-320px';
+        setTimeout(() => { debugPanel.classList.add('hidden'); }, 300);
+    }
+});
+
 // ─── Settings toggle ─────────────────────────────────────────────────────────
 const closeSettingsBtn = document.getElementById('close-settings');
 settingsToggle?.addEventListener('click', () => settingsPanel?.classList.toggle('hidden'));
 closeSettingsBtn?.addEventListener('click', () => settingsPanel?.classList.add('hidden'));
 closeAppBtn?.addEventListener('click', () => ipcRenderer.send('quit-app'));
+
+manualResetBtn?.addEventListener('click', () => {
+    ipcRenderer.send('manual-reset');
+});
+
+// ─── Play Style Mode ─────────────────────────────────────────────────────────
+type PlayMode = 'sentinel' | 'berserker' | 'auto';
+let currentMode: PlayMode = (localStorage.getItem('playMode') as PlayMode) || 'sentinel';
+let autoResolvedMode: 'sentinel' | 'berserker' = 'sentinel'; // For auto mode display
+
+const modeBadge = document.getElementById('mode-badge');
+const modeSentinelBtn = document.getElementById('mode-sentinel');
+const modeBerserkerBtn = document.getElementById('mode-berserker');
+const modeAutoBtn = document.getElementById('mode-auto');
+const modeButtons = [modeSentinelBtn, modeBerserkerBtn, modeAutoBtn];
+
+function updateModeBadge(effectiveMode: 'sentinel' | 'berserker') {
+    if (!modeBadge) return;
+    if (effectiveMode === 'berserker') {
+        modeBadge.innerText = '⚔️';
+        modeBadge.title = currentLang === 'fr' ? 'Mode Berserker' : 'Berserker Mode';
+    } else {
+        modeBadge.innerText = '🛡️';
+        modeBadge.title = currentLang === 'fr' ? 'Mode Sentinelle' : 'Sentinel Mode';
+    }
+    if (currentMode === 'auto') {
+        modeBadge.innerText = effectiveMode === 'berserker' ? '⚔️' : '🛡️';
+        modeBadge.title += currentLang === 'fr' ? ' (Auto)' : ' (Auto)';
+    }
+}
+
+function setMode(mode: PlayMode) {
+    currentMode = mode;
+    localStorage.setItem('playMode', mode);
+    // Update button active states
+    modeButtons.forEach(btn => {
+        btn?.classList.remove('mode-active', 'mode-active-berserker');
+    });
+    if (mode === 'sentinel') modeSentinelBtn?.classList.add('mode-active');
+    if (mode === 'berserker') modeBerserkerBtn?.classList.add('mode-active-berserker');
+    if (mode === 'auto') modeAutoBtn?.classList.add('mode-active');
+
+    const effectiveMode = mode === 'auto' ? autoResolvedMode : mode;
+    updateModeBadge(effectiveMode);
+
+    // Notify main process
+    ipcRenderer.send('set-play-mode', mode);
+}
+
+// Initialize mode buttons
+modeSentinelBtn?.addEventListener('click', () => setMode('sentinel'));
+modeBerserkerBtn?.addEventListener('click', () => setMode('berserker'));
+modeAutoBtn?.addEventListener('click', () => setMode('auto'));
+
+// Restore saved mode
+setMode(currentMode);
+
+// ─── Auto Mode: Adaptive Logic ───────────────────────────────────────────────
+function evaluateAutoMode(s: any): 'sentinel' | 'berserker' {
+    // Switch to Berserker if:
+    // 1. Opponent HP < 12
+    if (s.opponentHP < 12) return 'berserker';
+    // 2. Lethal chance > 80% (board attack >= 80% of opponent HP)
+    if (s.playerBoardAttack > 0 && (s.playerBoardAttack / s.opponentHP) >= 0.8) return 'berserker';
+    // 3. Opponent used 2+ AoE spells (exhausted their removal)
+    if (s.opponentAoESpellsPlayed >= 2) return 'berserker';
+    // Otherwise stay defensive
+    return 'sentinel';
+}
+
 
 // ─── Load saved config ───────────────────────────────────────────────────────
 ipcRenderer.invoke('get-env-config').then((config: any) => {
@@ -92,34 +211,71 @@ syncDeckBtn?.addEventListener('click', () => {
     }
 });
 
-// ─── Feed helpers ─────────────────────────────────────────────────────────────
+dbBtn?.addEventListener('click', () => {
+    ipcRenderer.send('open-card-db');
+});
+
+// ─── Feed helpers / Logging ──────────────────────────────────────────────────
 function addMessage(title: string, content: string, type: 'log' | 'ai') {
     if (!content) return;
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${type}-msg`;
-    msgDiv.innerHTML = `<strong>${title}</strong><br/><span class="content-text">${content}</span>`;
-    document.querySelector('.default-msg')?.remove();
-    feed?.prepend(msgDiv);
-    if (feed && feed.children.length > 50) feed.removeChild(feed.lastChild!);
+    if (groqAdviceText) {
+        groqAdviceText.innerText = `[${title}] ${content}\n\n` + groqAdviceText.innerText;
+        if (groqAdviceText.innerText.length > 800) {
+            groqAdviceText.innerText = groqAdviceText.innerText.substring(0, 800) + "...";
+        }
+    }
 }
 
-// ─── IPC: Events ─────────────────────────────────────────────────────────────
 ipcRenderer.on('log-event', (event: any, { type, data, simplified }: any) => {
-    addMessage(`${type}`, simplified || data, 'log');
+    // Only log text temporarily if needed, else ignore to keep AI advice clear
 });
+
+let lastTargetingAdvice = '';
+let currentPhaseHtml = '<span style="color:var(--accent-green); font-weight:bold;">== PHASE DE PLACEMENT ==</span><br><br>';
 
 ipcRenderer.on('ai-analysis', (event: any, { analysis }: any) => {
     if (!analysis) return;
-    if (groqAdviceText) groqAdviceText.innerText = analysis;
+    if (groqAdviceText) {
+        // Prevent stacking headers if analysis already contains one
+        const finalHtml = analysis.includes('PHASE DE') ? analysis : currentPhaseHtml + analysis.replace(/\n/g, '<br>');
+        groqAdviceText.innerHTML = finalHtml;
+        lastTargetingAdvice = analysis;
+    }
+});
+
+ipcRenderer.on('mulligan-advice', (event: any, analysis: string) => {
+    if (!analysis) return;
+    if (groqAdviceText) {
+        groqAdviceText.innerHTML = `<span style="color:var(--accent-blue); font-weight:bold;">== PHASE DE MULLIGAN ==</span><br><br>${analysis}`;
+    }
 });
 
 ipcRenderer.on('match-reset', () => {
-    if (feed) feed.innerHTML = '<div class="message default-msg">En attente d\'événements du jeu...</div>';
-    if (groqAdviceText) groqAdviceText.innerText = (currentLang === 'fr' ? "En attente d'analyse..." : "Waiting for analysis...");
-    if (targetingContainer) targetingContainer.classList.add('hidden');
-    if (threatAlert) threatAlert.classList.add('hidden');
-    if (aoeRiskAlert) aoeRiskAlert.classList.add('hidden');
-    if (priorityBadge) priorityBadge.classList.add('hidden');
+    lastTargetingAdvice = '';
+    if (groqAdviceText) groqAdviceText.innerText = (currentLang === 'fr' ? "En attente des cartes ou actions du jeu..." : "Waiting for game actions...");
+    if (hpValue) hpValue.innerText = '30 PV';
+    if (hpStatus) hpStatus.className = 'hp-status hp-stable';
+    if (hpIcon) hpIcon.innerText = '🟢';
+    if (stratDot) stratDot.className = 'strategic-dot dot-grey';
+    if (stratAdvice) stratAdvice.innerText = 'Match Reset - Prêt';
+});
+
+ipcRenderer.on('log-connected', () => {
+    if (stratAdvice) {
+        const originalText = stratAdvice.innerText;
+        stratAdvice.innerText = '✅ LIEN LOG ACTIF';
+        if (stratDot) {
+            stratDot.className = 'strategic-dot dot-green';
+            setTimeout(() => {
+                stratAdvice.innerText = originalText;
+                // Don't reset dot, it will be updated by threatUpdate
+            }, 3000);
+        }
+    }
+    // Sync the LED immediately too
+    if (watcherLed) {
+        watcherLed.className = 'strategic-dot dot-green';
+    }
 });
 
 // ─── IPC: AutoSync notifications ─────────────────────────────────────────────
@@ -155,94 +311,156 @@ ipcRenderer.on('sync-started', () => {
 });
 
 
+// ─── IPC: Debug Log Feed ──────────────────────────────────────────────────────
+ipcRenderer.on('debug-log', (event: any, info: { text: string, parsed: boolean, ignored: boolean }) => {
+    if (watcherLed) {
+        watcherLed.classList.add('dot-green');
+        watcherLed.classList.remove('dot-grey');
+        setTimeout(() => {
+            watcherLed.classList.remove('dot-green');
+            watcherLed.classList.add('dot-grey');
+        }, 100);
+    }
+
+    if (!debugLogFeed) return;
+    const div = document.createElement('div');
+    div.innerText = info.text;
+    if (info.ignored) {
+        div.style.color = '#6b7280';
+    } else if (info.parsed) {
+        div.style.color = '#4ade80';
+    } else {
+        div.style.color = '#cccccc';
+    }
+
+    debugLogFeed.appendChild(div);
+    if (debugLogFeed.childElementCount > 10) {
+        debugLogFeed.removeChild(debugLogFeed.firstChild!);
+    }
+    debugLogFeed.scrollTop = debugLogFeed.scrollHeight;
+});
+
+
 // ─── IPC: full threat state — RULE OF ONE + TURN PHASE ───────────────────────
 ipcRenderer.on('threat-update', (event: any, s: any) => {
 
-    // ── HP compact indicator (icon + value only, text hidden via CSS) ──
-    if (hpStatus && hpIcon && hpValue) {
-        const critical = s.hpStatus === 'CRITICAL';
-        hpStatus.className = `hp-status ${critical ? 'hp-critical' : 'hp-stable'}`;
-        hpIcon.innerText = critical ? '🔴' : '🟢';
-        hpValue.innerText = `❤️ ${s.playerHP} PV`;
-    }
+    // Force paint on the very next frame for zero-latency rendering
+    requestAnimationFrame(() => {
 
-    // ── Opponent Live Action ──
-    if (opponentActionBar && opponentActionText) {
-        if (s.lastOpponentAction) {
-            opponentActionText.innerText = s.lastOpponentAction;
-            opponentActionBar.classList.remove('hidden');
-        } else {
-            opponentActionBar.classList.add('hidden');
+        // ── Auto Mode: evaluate dynamic switching ──
+        if (currentMode === 'auto') {
+            const newResolved = evaluateAutoMode(s);
+            if (newResolved !== autoResolvedMode) {
+                autoResolvedMode = newResolved;
+                updateModeBadge(newResolved);
+                const switchMsg = newResolved === 'berserker'
+                    ? (currentLang === 'fr'
+                        ? '🚨 CHANGEMENT DE TACTIQUE : PASSAGE EN MODE BERSERKER'
+                        : '🚨 TACTIC SWITCH: ENTERING BERSERKER MODE')
+                    : (currentLang === 'fr'
+                        ? '🛡️ Retour en Mode Sentinelle'
+                        : '🛡️ Back to Sentinel Mode');
+                addMessage('🔄 MODE', switchMsg, 'ai');
+                // Notify main process of effective mode change
+                ipcRenderer.send('set-play-mode', newResolved);
+            }
         }
-    }
 
-    // ── Danger Flash (Level 5 opponent card) ──
-    if (s.opponentDangerFlash && appContainer) {
-        appContainer.classList.remove('danger-flash');
-        // Force reflow to restart animation
-        void appContainer.offsetWidth;
-        appContainer.classList.add('danger-flash');
-        // Auto-remove after animation
-        setTimeout(() => appContainer?.classList.remove('danger-flash'), 2000);
-    }
+        // ── Debug State Update ──
+        if (debugLastCard) debugLastCard.innerText = (s.lastCardDetected && s.lastOpponentAction?.includes(s.lastCardDetected)) ? s.lastCardDetected : (s.lastCardDetected || '-');
+        if (debugOppGold) debugOppGold.innerText = s.opponentCurrentGold.toString();
+        if (debugActiveMode) debugActiveMode.innerText = s.activeMode || '-';
 
-    // ── Strategic dot (always updated) ──
-    if (stratDot && stratAdvice) {
-        stratAdvice.innerText = s.strategicAdvice;
-        stratDot.className = 'strategic-dot';
-        if (s.isLethal) {
-            stratDot.classList.add('dot-lethal');
-        } else if (s.strategicColor === 'GREY') {
-            stratDot.classList.add('dot-grey');
-        } else {
-            stratDot.classList.add(`dot-${s.strategicColor.toLowerCase() === 'orange' ? 'orange' : (s.strategicColor.toLowerCase() === 'rouge' ? 'rouge' : 'green')}`);
+        // ── HP compact indicator ──
+        if (hpStatus && hpIcon && hpValue) {
+            const critical = s.hpStatus === 'CRITICAL';
+            hpStatus.className = `hp-status ${critical ? 'hp-critical' : 'hp-stable'}`;
+            hpIcon.innerText = critical ? '🔴' : '🟢';
+            hpValue.innerText = `❤️ ${s.playerHP} PV`;
+
+            // ── INSTANT SEUIL CRITIQUE ──
+            if (critical) {
+                if (appContainer) {
+                    appContainer.classList.remove('danger-flash');
+                    void appContainer.offsetWidth;
+                    appContainer.classList.add('danger-flash');
+                    setTimeout(() => appContainer?.classList.remove('danger-flash'), 2000);
+                }
+            }
         }
-    }
 
-    // ── Targeting Advice — TURN PHASE AWARE ──
-    if (targetingContainer && targetingAdvice) {
-        const isOpponentTurn = s.opponentTurn > 0 && !s.isPlayerTurn;
-        const highAoeRisk = s.aoeProbability > 50;
-
-        if (highAoeRisk && isOpponentTurn) {
-            // AoE risk override — placement warning
-            targetingAdvice.innerText = currentLang === 'fr'
-                ? '⚠️ PRUDENCE : Ne jouez plus d\'unités ce tour'
-                : '⚠️ CAUTION: Do not deploy more units this turn';
-            targetingContainer.classList.remove('hidden');
-        } else if (isOpponentTurn) {
-            // Opponent's turn — defensive stance
-            targetingAdvice.innerText = currentLang === 'fr'
-                ? '🛡️ ATTENTE : Préparez-vous à encaisser'
-                : '🛡️ STANDBY: Prepare for incoming damage';
-            targetingContainer.classList.remove('hidden');
-        } else if (s.targetingAdvice) {
-            // Player's turn — show real targeting advice
-            targetingAdvice.innerText = s.targetingAdvice;
-            targetingContainer.classList.remove('hidden');
-        } else {
-            targetingContainer.classList.add('hidden');
+        // ── Strategic dot (always updated) ──
+        if (stratDot && stratAdvice) {
+            stratAdvice.innerText = s.strategicAdvice;
+            stratDot.className = 'strategic-dot';
+            if (s.isLethal) {
+                stratDot.classList.add('dot-lethal');
+            } else if (s.strategicColor === 'GREY') {
+                stratDot.classList.add('dot-grey');
+            } else {
+                stratDot.classList.add(`dot-${s.strategicColor.toLowerCase() === 'orange' ? 'orange' : (s.strategicColor.toLowerCase() === 'rouge' ? 'rouge' : 'green')}`);
+            }
         }
-    }
 
-    // ── RULE OF ONE: Only show the highest priority alert ──
-    threatAlert?.classList.add('hidden');
-    aoeRiskAlert?.classList.add('hidden');
-    priorityBadge?.classList.add('hidden');
+        // ── Phase Tracking ──
+        currentPhaseHtml = s.isCombatPhase ? 
+            '<span style="color:var(--accent-red); font-weight:bold;">== PHASE DE COMBAT ==</span><br><br>' : 
+            '<span style="color:var(--accent-green); font-weight:bold;">== PHASE DE PLACEMENT ==</span><br><br>';
 
-    if (s.isLethal) {
-        // Lethal is handled by the strategic dot (purple pulsing)
-    } else if (s.hpStatus === 'CRITICAL') {
-        // HP bar already turns red
-    } else if (s.isThreatActive || s.aoeRisk === 'HIGH') {
-        if (aoeRiskAlert) aoeRiskAlert.classList.remove('hidden');
-        if (threatAlert && aoeProb && oppStats) {
-            aoeProb.innerText = s.aoeProbability.toString();
-            oppStats.innerText = (currentLang === 'fr' ? 'Main: ' : 'Hand: ') + `${s.opponentHandSize} | ` + (currentLang === 'fr' ? 'Or: ' : 'Gold: ') + `${s.opponentCurrentGold}`;
-            threatAlert.classList.remove('hidden');
+        // ── AI Advice Text Integration ──
+        // Only override if there's actual new tactical advice to avoid overwriting mulligan or other logs
+        if (s.targetingAdvice && s.targetingAdvice !== lastTargetingAdvice && groqAdviceText) {
+            const finalHtml = s.targetingAdvice.includes('PHASE DE') ? s.targetingAdvice : currentPhaseHtml + s.targetingAdvice.replace(/\n/g, '<br>');
+            groqAdviceText.innerHTML = finalHtml;
+            lastTargetingAdvice = s.targetingAdvice;
         }
-    } else if (s.priorityTarget && priorityBadge && priorityName) {
-        priorityName.innerText = s.priorityTarget;
-        priorityBadge.classList.remove('hidden');
-    }
+
+        // ── Visual Board Drawing (Phase 2) ──
+        if (s.gameStateSummary) {
+            const sum = s.gameStateSummary;
+
+            const updateSlot = (slotEl: Element, entity: any) => {
+                if (!entity) {
+                    // Empty slot
+                    slotEl.innerHTML = '';
+                    (slotEl as HTMLElement).title = '';
+                    slotEl.classList.remove('filled');
+                    slotEl.classList.add('empty');
+                } else {
+                    // Filled slot
+                    slotEl.classList.remove('empty');
+                    slotEl.classList.add('filled');
+                    const parts = entity.name.split(' ');
+                    let initials = "";
+                    if (parts.length >= 2) {
+                        initials = (parts[0][0] + parts[1][0]).toUpperCase();
+                    } else {
+                        initials = entity.name.substring(0, 2).toUpperCase();
+                    }
+
+                    slotEl.innerHTML = `
+                        <div class="stat-tag stat-cost">${entity.cost ?? '0'}</div>
+                        <div class="stat-tag stat-income" style="${entity.goldValue ? '' : 'display:none;'}">${entity.goldValue ?? ''}</div>
+                        <div style="font-size: 0.7rem; font-weight: bold;">${initials}</div>
+                        <div class="stat-tag stat-attack">${entity.attack ?? '0'}</div>
+                        <div class="stat-tag stat-health">${entity.health ?? '0'}</div>
+                    `;
+                    (slotEl as HTMLElement).title = entity.name;
+                }
+            };
+
+            const enemySlots = document.querySelectorAll('.opponent-row .card-slot');
+            enemySlots.forEach((slot, i) => {
+                const entity = sum.enemyBoard.find((e: any) => e.slotIndex === i);
+                updateSlot(slot, entity);
+            });
+
+            const alliedSlots = document.querySelectorAll('.allied-row .card-slot');
+            alliedSlots.forEach((slot, i) => {
+                const entity = sum.alliedBoard.find((e: any) => e.slotIndex === i);
+                updateSlot(slot, entity);
+            });
+        }
+
+    }); // end requestAnimationFrame
 });
